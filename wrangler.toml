@@ -11,6 +11,7 @@ bucket_name = "tapes"
 [vars]
 TTL_SECONDS = "86400"    # 24h, then the tape is gone
 MAX_BYTES = "100000000"  # 100 MB, the free-tier request body limit
+UPLOAD_ORIGINS = "https://amigo.sh"  # pages a browser lets send the key (the receiver at /fm); empty: none
 
 # TAPE_KEY is a secret, never a var:
 #   wrangler secret put TAPE_KEY

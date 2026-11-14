@@ -85,14 +85,30 @@ async function getTape(request, env, ctx) {
   return new Response(tape.body, { status, headers });
 }
 
+// A browser page may only leave a tape if it is one the operator named (UPLOAD_ORIGINS, comma separated). Anyone may listen from
+// anywhere; this is only about which pages a browser lets send the key. The key is still what opens the band.
+function preflight(request, env) {
+  const origin = request.headers.get('Origin');
+  const wants = request.headers.get('Access-Control-Request-Method');
+  const allowed = (env.UPLOAD_ORIGINS || '').split(',').map((o) => o.trim()).filter(Boolean);
+  if (wants === 'PUT' && origin && allowed.includes(origin)) {
+    return reply(204, {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'PUT',
+      'Access-Control-Allow-Headers': 'X-Tape-Key, Content-Type',
+      'Access-Control-Max-Age': '600',
+      Vary: 'Origin',
+    });
+  }
+  return reply(204, { 'Access-Control-Allow-Methods': 'GET, HEAD', 'Access-Control-Allow-Headers': 'Range', Vary: 'Origin' });
+}
+
 export default {
   async fetch(request, env, ctx) {
     if (new URL(request.url).pathname !== '/tape') return reply(404);
     if (request.method === 'PUT') return putTape(request, env);
     if (request.method === 'GET' || request.method === 'HEAD') return getTape(request, env, ctx);
-    if (request.method === 'OPTIONS') {
-      return reply(204, { 'Access-Control-Allow-Methods': 'GET, HEAD', 'Access-Control-Allow-Headers': 'Range' });
-    }
+    if (request.method === 'OPTIONS') return preflight(request, env);
     return reply(405, { Allow: 'GET, HEAD, PUT' });
   },
 };
