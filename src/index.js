@@ -73,7 +73,7 @@ async function getTape(request, env, ctx) {
 
   const headers = new Headers({ ...CORS, 'Cache-Control': 'no-store', 'Accept-Ranges': 'bytes' });
   tape.writeHttpMetadata(headers);
-  headers.set('ETag', tape.httpEtag);
+  // No ETag: it is the hash of the tape, and nothing of what is on it leaves with the answer but the tape itself.
   headers.set('Content-Length', String(length));
   if (range) headers.set('Content-Range', `bytes ${offset}-${offset + length - 1}/${tape.size}`);
 
