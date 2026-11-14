@@ -19,11 +19,11 @@ One URL is the band: `https://amigo-fm.<you>.workers.dev/tape`
 | `GET /tape`                         | anyone   | `200` / `206` audio stream, or `404`.       |
 
 - A new `PUT` replaces the tape. There is only ever one.
-- 24 hours after the `PUT`, `GET` answers `404` and the tape is deleted.
+- 24 hours after the `PUT`, `GET` answers `404`. The bytes go with the lifecycle rule below (the Worker also deletes them on the first request after).
 - `GET` honours `Range`, so `<audio>` can seek. `HEAD` works too.
 - `PUT` needs `Content-Type: audio/*` and a `Content-Length` (max 100 MB).
 - Wrong or missing key: `401`. Not audio: `415`. Too big: `413`.
-- CORS is open for reading. Nothing is cached.
+- CORS is open for reading. Nothing is cached, and the answer carries the tape's type and size and no hash of it (no `ETag`).
 
 ## Receptor
 
@@ -69,8 +69,11 @@ Deploy (3 minutes, free tier):
 git clone https://github.com/GratiaOS/amigo-fm && cd amigo-fm
 wrangler r2 bucket create tapes
 wrangler secret put TAPE_KEY
+wrangler r2 bucket lifecycle add tapes expire-tapes --expire-days 1
 wrangler deploy
 ```
+
+The Worker stops serving a tape after 24 hours; the lifecycle rule makes R2 delete its bytes by itself (rules count in days, so it is gone in the day that follows).
 
 Put a tape:
 
