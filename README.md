@@ -84,6 +84,7 @@ curl -X PUT https://amigo-fm.<you>.workers.dev/tape \
 `204`. It's flowing. 24h. Gone.
 
 Until `TAPE_KEY` is set, every `PUT` is refused.
+Keep the key long, random and plain ASCII (`openssl rand -hex 24`): it travels in a header.
 
 ## Rules
 
