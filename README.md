@@ -1,5 +1,7 @@
 # amigo-fm 📻
 
+![Heartware: states first, silence allowed](docs/heartware-badge.svg)
+
 A single-tape radio protocol.
 
 1 Worker. 1 R2 bucket. 2 routes. 24h TTL.
