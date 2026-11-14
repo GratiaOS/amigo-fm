@@ -83,6 +83,11 @@ curl -X PUT https://amigo-fm.<you>.workers.dev/tape \
 
 `204`. It's flowing. 24h. Gone.
 
+From a browser, only from the pages you name: `UPLOAD_ORIGINS` in `wrangler.toml` (comma separated, `https://amigo.sh` by default; empty
+for none) is the list of origins whose preflight may send `PUT` and `X-Tape-Key`. Anyone may still listen from anywhere. The list only says
+which pages a browser lets carry the key; the key is what opens the band. The receiver at [amigo.sh/fm](https://amigo.sh/fm) has a small door
+for it: the operator types the key each time, it goes in one request to the band, and neither the page nor the band keeps it.
+
 Until `TAPE_KEY` is set, every `PUT` is refused.
 Keep the key long, random and plain ASCII (`openssl rand -hex 24`): it travels in a header.
 
