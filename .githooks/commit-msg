@@ -1,0 +1,11 @@
+#!/bin/sh
+# Every commit says why in a whisper (see CONTRIBUTING.md). Lines git leaves as comments (#) do not count; merges pass.
+# Set up once per clone: git config core.hooksPath .githooks
+head -n1 "$1" | grep -q '^Merge ' && exit 0
+if grep -v '^#' "$1" | grep -Eiq '^[^a-z0-9]*whisper:[[:space:]]*[^[:space:]]'; then exit 0; fi
+cat >&2 <<'MSG'
+commit-msg: this commit needs a whisper line, such as
+  🌬️ whisper: "what this is for."
+(see CONTRIBUTING.md)
+MSG
+exit 1
