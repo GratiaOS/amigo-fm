@@ -88,22 +88,24 @@ curl -X PUT https://amigo-fm.<you>.workers.dev/tape \
 
 ### The terminal
 
-`bin/amigo-fm.mjs` is the band in your terminal. No dependencies, Node 20+; `make` and `split` need `yt-dlp` and `ffmpeg`.
+Leaving a tape in a garden, from the terminal. `bin/amigo-fm.mjs`, no dependencies, Node 20+. English and Spanish: it follows your system language,
+or `--lang es` / `AMIGO_FM_LANG=es`. Preparing a tape from a link needs `yt-dlp` and `ffmpeg` (`brew install yt-dlp ffmpeg`).
 
 ```bash
-npm link                                   # once, from the clone: gives you `amigo-fm`
-amigo-fm login                             # band URL + key (key typed hidden, saved 0600; or AMIGO_FM_URL / AMIGO_FM_KEY)
+npm link                      # once, from the clone: gives you `amigo-fm`
 
-amigo-fm status                            # ● on air / ● silent
-amigo-fm listen                            # hear it (ffplay or mpv)
-amigo-fm make "LINK" -n name               # YouTube / YT Music -> 128k mp3, no metadata
-amigo-fm make "PLAYLIST" --mix -n name     # a whole playlist, glued into one mp3
-amigo-fm split ~/Downloads/name.mp3        # over 100 MB: ~86 MB parts (90 min); the big file goes only if the cut worked
-amigo-fm put name_part00.mp3               # refuses over 100 MB before sending a byte
-amigo-fm air "LINK"                        # make + put, in one go
+amigo-fm connect              # the frequency (your Worker URL) and your key; typed once, kept only on this machine (0600)
+amigo-fm garden               # 🪴 awake · 🌱 quiet · 🌫 out of reach
+amigo-fm listen               # hear it (ffplay or mpv)
+amigo-fm leave "LINK"         # prepare a tape from a YouTube / YT Music link and leave it; or leave a file
+amigo-fm prepare "LINK"       # prepare it, don't leave it
 ```
 
-Files land in `~/Downloads` (`--dir` or `AMIGO_FM_DIR`). When a download stops working, YouTube changed something: `brew upgrade yt-dlp`.
+If a tape is already in the garden, `leave` asks before replacing it (default: No; `--yes` skips the question). A prepared tape is 128k mp3 with no
+metadata; the garden takes up to 100 MB. Playlists (`--mix`) and cutting a long file (`split`) are in `amigo-fm help --advanced`.
+
+Nothing here adds to the server: no account, no history, no analytics. The frequency and the key never leave the machine except in the one request that
+leaves the tape. When a download stops working, YouTube changed something: `brew upgrade yt-dlp`.
 
 ## Rules
 
