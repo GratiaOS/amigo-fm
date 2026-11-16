@@ -67,7 +67,7 @@ const WORDS = {
     splitTooBig: (f) => `A part came out over 100 MB (${f}). Nothing was cut; your file is untouched.`,
     splitNote: 'These are separate tapes. The band holds one at a time and plays no queue: leave them one by one, each with `amigo-fm rec`.',
     help: `Your band URL and key stay on this machine.
-More: amigo-fm help --advanced`,
+More commands: amigo-fm help --all`,
     commands: [
       ['play', '', 'Listen to the band'],
       ['rec', '<link|file>', 'Leave a tape'],
@@ -134,7 +134,7 @@ Environment: AMIGO_FM_URL, AMIGO_FM_KEY, AMIGO_FM_DIR, AMIGO_FM_LANG, AMIGO_FM_S
     splitTooBig: (f) => `Una parte salió de más de 100 MB (${f}). No se cortó nada; tu archivo está intacto.`,
     splitNote: 'Son cintas separadas. La frecuencia guarda una a la vez y no hace cola: déjalas una por una, cada una con `amigo-fm rec`.',
     help: `Tu URL y tu llave se quedan en esta máquina.
-Más: amigo-fm help --advanced`,
+Más comandos: amigo-fm help --all`,
     commands: [
       ['play', '', 'Escucha la frecuencia'],
       ['rec', '<enlace|archivo>', 'Deja una cinta'],
@@ -201,7 +201,7 @@ Entorno: AMIGO_FM_URL, AMIGO_FM_KEY, AMIGO_FM_DIR, AMIGO_FM_LANG, AMIGO_FM_SEGME
     splitTooBig: (f) => `O parte a ieșit de peste 100 MB (${f}). Nu s-a tăiat nimic; fișierul tău e neatins.`,
     splitNote: 'Sunt casete separate. Frecvența ține una singură și nu are coadă: las-o pe rând, pe fiecare cu `amigo-fm rec`.',
     help: `Adresa și cheia rămân pe acest calculator.
-Mai mult: amigo-fm help --advanced`,
+Mai multe comenzi: amigo-fm help --all`,
     commands: [
       ['play', '', 'Ascultă frecvența'],
       ['rec', '<link|fișier>', 'Lasă o casetă'],
@@ -257,6 +257,7 @@ function parse(argv) {
     if (a === '--mix') o.mix = true;
     else if (a === '--yes' || a === '-y') o.yes = true;
     else if (a === '--advanced') o.advanced = true;
+    else if (a === '--all') o.all = true;
     else if (a === '-n' || a === '--name') o.name = argv[++i];
     else if (a === '-d' || a === '--dir') o.dir = argv[++i];
     else if (a === '--lang') o.lang = argv[++i];
@@ -652,8 +653,8 @@ W = WORDS[cfg.lang];
 try {
   if (!cmd) await home(cfg);
   else if (cmd === 'help' || o.help) {
-    if (o.advanced) console.log(W.advanced);
-    else { console.log(`${W.title}\n\n${W.commands.map(([c, arg, what]) => `  amigo-fm ${(c + ' ' + arg).trim().padEnd(20)} ${what}`).join('\n')}\n\n${W.help}`); }
+    const main = `${W.title}\n\n${W.commands.map(([c, arg, what]) => `  amigo-fm ${(c + ' ' + arg).trim().padEnd(20)} ${what}`).join('\n')}\n\n${W.help}`;
+    console.log(o.all ? `${main}\n\n${W.advanced}` : o.advanced ? W.advanced : main);
   } else switch (cmd) {
     case 'play': case 'listen': await play(cfg); break;
     case 'rec': case 'air': case 'put': case 'leave': await rec(cfg, o); break;

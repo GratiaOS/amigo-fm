@@ -108,7 +108,7 @@ asks before replacing it (default: No; `--yes` skips the question). The band tak
 (position = the time of day modulo the tape's length), so you hear the second everyone else hears, as close as your clock and your player's start
 allow. The band tells nothing about when the tape was put: no start time, no header.
 
-Playlists (`make --mix`) and cutting a long file (`split`) are in `amigo-fm help --advanced`. `split` sizes the parts from the file's own bitrate,
+Playlists (`make --mix`) and cutting a long file (`split`) are the workshop: `amigo-fm help --advanced`, or `amigo-fm help --all` for the whole map. `split` sizes the parts from the file's own bitrate,
 checks every part, and only then removes the original. The parts are separate tapes: the band holds one at a time and plays no queue.
 
 Nothing here adds to the server: no account, no history, no analytics. The URL and the key never leave the machine except in the one request that
