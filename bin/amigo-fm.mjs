@@ -57,7 +57,7 @@ const WORDS = {
     ytFailed: "I couldn't get that audio. If the link is right, YouTube may have changed something: brew upgrade yt-dlp",
     ytBot: "YouTube wants to be sure you're not a bot right now. Try again in a while, or set AMIGO_FM_COOKIES=chrome (or safari, firefox) to use your browser's session.",
     ffFailed: 'ffmpeg could not do that.',
-    noRec: 'Record what? Give me a link or an audio file.',
+    noRec: 'Record what? Give me a link (in quotes: the shell eats ? and &) or an audio file.',
     noMake: 'Make what? Give me a link.',
     noFile: (f) => `I can't find ${f}.`,
     gaveNothing: 'That playlist gave no tracks.',
@@ -70,7 +70,7 @@ const WORDS = {
 More commands: amigo-fm help --all`,
     commands: [
       ['play', '', 'Listen to the band'],
-      ['rec', '<link|file>', 'Leave a tape'],
+      ['rec', '"<link>"|<file>', 'Leave a tape'],
       ['tune', '', 'Set up your radio'],
     ],
     advanced: `Advanced
@@ -124,7 +124,7 @@ Environment: AMIGO_FM_URL, AMIGO_FM_KEY, AMIGO_FM_DIR, AMIGO_FM_LANG, AMIGO_FM_S
     ytFailed: 'No pude conseguir ese audio. Si el enlace es correcto, puede que YouTube haya cambiado algo: brew upgrade yt-dlp',
     ytBot: 'YouTube quiere comprobar que no eres un bot. Prueba otra vez en un rato, o define AMIGO_FM_COOKIES=chrome (o safari, firefox) para usar la sesión de tu navegador.',
     ffFailed: 'ffmpeg no pudo hacerlo.',
-    noRec: '¿Grabar qué? Dame un enlace o un archivo de audio.',
+    noRec: '¿Grabar qué? Dame un enlace (entre comillas: la shell se come ? y &) o un archivo de audio.',
     noMake: '¿Hacer qué? Dame un enlace.',
     noFile: (f) => `No encuentro ${f}.`,
     gaveNothing: 'Esa lista no trajo canciones.',
@@ -137,7 +137,7 @@ Environment: AMIGO_FM_URL, AMIGO_FM_KEY, AMIGO_FM_DIR, AMIGO_FM_LANG, AMIGO_FM_S
 Más comandos: amigo-fm help --all`,
     commands: [
       ['play', '', 'Escucha la frecuencia'],
-      ['rec', '<enlace|archivo>', 'Deja una cinta'],
+      ['rec', '"<enlace>"|<archivo>', 'Deja una cinta'],
       ['tune', '', 'Configura tu radio'],
     ],
     advanced: `Avanzado
@@ -191,7 +191,7 @@ Entorno: AMIGO_FM_URL, AMIGO_FM_KEY, AMIGO_FM_DIR, AMIGO_FM_LANG, AMIGO_FM_SEGME
     ytFailed: 'Nu am putut lua sunetul acela. Dacă link-ul e bun, poate YouTube a schimbat ceva: brew upgrade yt-dlp',
     ytBot: 'YouTube vrea să se asigure că nu ești un robot. Mai încearcă peste puțin timp sau setează AMIGO_FM_COOKIES=chrome (sau safari, firefox) ca să folosească sesiunea browserului tău.',
     ffFailed: 'ffmpeg nu a putut face asta.',
-    noRec: 'Ce înregistrez? Dă-mi un link sau un fișier audio.',
+    noRec: 'Ce înregistrez? Dă-mi un link (între ghilimele: shell-ul mănâncă ? și &) sau un fișier audio.',
     noMake: 'Ce fac? Dă-mi un link.',
     noFile: (f) => `Nu găsesc ${f}.`,
     gaveNothing: 'Lista aceea nu a dat nicio piesă.',
@@ -204,7 +204,7 @@ Entorno: AMIGO_FM_URL, AMIGO_FM_KEY, AMIGO_FM_DIR, AMIGO_FM_LANG, AMIGO_FM_SEGME
 Mai multe comenzi: amigo-fm help --all`,
     commands: [
       ['play', '', 'Ascultă frecvența'],
-      ['rec', '<link|fișier>', 'Lasă o casetă'],
+      ['rec', '"<link>"|<fișier>', 'Lasă o casetă'],
       ['tune', '', 'Pune aparatul la punct'],
     ],
     advanced: `Avansat
@@ -375,7 +375,7 @@ async function home(cfg) {
   say();
   say(cfg.url ? statusLine(await look(cfg)) : W.notTuned);
   say();
-  for (const [c, arg, what] of W.commands) say(`  amigo-fm ${(c + ' ' + arg).trim().padEnd(20)} ${what}`);
+  for (const [c, arg, what] of W.commands) say(`  amigo-fm ${(c + ' ' + arg).trim().padEnd(26)} ${what}`);
   say();
   say(dim(W.help));
 }
@@ -653,7 +653,7 @@ W = WORDS[cfg.lang];
 try {
   if (!cmd) await home(cfg);
   else if (cmd === 'help' || o.help) {
-    const main = `${W.title}\n\n${W.commands.map(([c, arg, what]) => `  amigo-fm ${(c + ' ' + arg).trim().padEnd(20)} ${what}`).join('\n')}\n\n${W.help}`;
+    const main = `${W.title}\n\n${W.commands.map(([c, arg, what]) => `  amigo-fm ${(c + ' ' + arg).trim().padEnd(26)} ${what}`).join('\n')}\n\n${W.help}`;
     console.log(o.all ? `${main}\n\n${W.advanced}` : o.advanced ? W.advanced : main);
   } else switch (cmd) {
     case 'play': case 'listen': await play(cfg); break;

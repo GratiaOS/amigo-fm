@@ -100,6 +100,9 @@ amigo-fm play                     # listen to the band
 amigo-fm                          # the main screen: is there a tape on the band?
 ```
 
+Put a link in quotes: the shell reads `?` and `&` itself, and the link never reaches `amigo-fm` otherwise.
+A link to one video inside a playlist leaves just that video; `--mix` is for the whole playlist.
+
 `rec` finds the audio, records a 128k mp3 with no metadata, checks it, and puts it on air; from a link it never leaves files behind. A file can be mp3,
 wav, flac, ogg, m4a or aac; the band is told what it really is, from its first bytes and not from its name. If a tape is already on the band, `rec`
 asks before replacing it (default: No; `--yes` skips the question). The band takes up to 100 MB.
