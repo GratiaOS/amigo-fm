@@ -86,13 +86,34 @@ curl -X PUT https://amigo-fm.<you>.workers.dev/tape \
 
 `204`. It's flowing. 24h. Gone.
 
-From a browser, only from the pages you name: `UPLOAD_ORIGINS` in `wrangler.toml` (comma separated, `https://amigo.sh` by default; empty
-for none) is the list of origins whose preflight may send `PUT` and `X-Tape-Key`. Anyone may still listen from anywhere. The list only says
-which pages a browser lets carry the key; the key is what opens the band. The receiver at [amigo.sh/fm](https://amigo.sh/fm) has a small door
-for it: the operator types the key each time, it goes in one request to the band, and neither the page nor the band keeps it.
+### The terminal
 
-Until `TAPE_KEY` is set, every `PUT` is refused.
-Keep the key long, random and plain ASCII (`openssl rand -hex 24`): it travels in a header.
+A cassette player for the band: **PLAY · REC · TUNE**. `bin/amigo-fm.mjs`, no dependencies, Node 20+. English, Spanish and Romanian: it follows your
+system language, or `--lang en|es|ro` / `AMIGO_FM_LANG`. A link needs `yt-dlp` and `ffmpeg` (`brew install yt-dlp ffmpeg`).
+
+```bash
+npm link                          # once, from the clone: gives you `amigo-fm`
+
+amigo-fm tune                     # your band URL and operator key. Typed once, kept only on this machine (0600)
+amigo-fm rec "https://youtu.be/…" # a YouTube / YT Music link, or a file: amigo-fm rec song.mp3
+amigo-fm play                     # listen to the band
+amigo-fm                          # the main screen: is there a tape on the band?
+```
+
+`rec` finds the audio, records a 128k mp3 with no metadata, checks it, and puts it on air; from a link it never leaves files behind. A file can be mp3,
+wav, flac, ogg, m4a or aac; the band is told what it really is, from its first bytes and not from its name. If a tape is already on the band, `rec`
+asks before replacing it (default: No; `--yes` skips the question). The band takes up to 100 MB.
+
+`play` joins the tape the way the receiver at [amigo.sh/fm](https://amigo.sh/fm) does: the tape plays round and round counted from the clock
+(position = the time of day modulo the tape's length), so you hear the second everyone else hears, as close as your clock and your player's start
+allow. The band tells nothing about when the tape was put: no start time, no header.
+
+Playlists (`make --mix`) and cutting a long file (`split`) are the workshop: `amigo-fm help --advanced`, or `amigo-fm help --all` for the whole map. `split` sizes the parts from the file's own bitrate,
+checks every part, and only then removes the original. The parts are separate tapes: the band holds one at a time and plays no queue.
+
+Nothing here adds to the server: no account, no history, no analytics. The URL and the key never leave the machine except in the one request that
+puts the tape on air. When a download stops working, YouTube changed something: `brew upgrade yt-dlp`. If YouTube asks to confirm you're not a bot,
+try again in a while, or set `AMIGO_FM_COOKIES=chrome` (or `safari`, `firefox`) to let yt-dlp use your browser's session; nothing is read unless you set it.
 
 ## Rules
 

@@ -1,0 +1,10 @@
+{
+  "name": "amigo-fm",
+  "version": "0.1.0",
+  "description": "A single-tape radio protocol: one Worker, one R2 bucket, and a terminal to tune it.",
+  "type": "module",
+  "bin": { "amigo-fm": "bin/amigo-fm.mjs" },
+  "engines": { "node": ">=20" },
+  "license": "MIT",
+  "private": true
+}
