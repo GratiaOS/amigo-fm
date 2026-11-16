@@ -86,13 +86,24 @@ curl -X PUT https://amigo-fm.<you>.workers.dev/tape \
 
 `204`. It's flowing. 24h. Gone.
 
-From a browser, only from the pages you name: `UPLOAD_ORIGINS` in `wrangler.toml` (comma separated, `https://amigo.sh` by default; empty
-for none) is the list of origins whose preflight may send `PUT` and `X-Tape-Key`. Anyone may still listen from anywhere. The list only says
-which pages a browser lets carry the key; the key is what opens the band. The receiver at [amigo.sh/fm](https://amigo.sh/fm) has a small door
-for it: the operator types the key each time, it goes in one request to the band, and neither the page nor the band keeps it.
+### The terminal
 
-Until `TAPE_KEY` is set, every `PUT` is refused.
-Keep the key long, random and plain ASCII (`openssl rand -hex 24`): it travels in a header.
+`bin/amigo-fm.mjs` is the band in your terminal. No dependencies, Node 20+; `make` and `split` need `yt-dlp` and `ffmpeg`.
+
+```bash
+npm link                                   # once, from the clone: gives you `amigo-fm`
+amigo-fm login                             # band URL + key (key typed hidden, saved 0600; or AMIGO_FM_URL / AMIGO_FM_KEY)
+
+amigo-fm status                            # ● on air / ● silent
+amigo-fm listen                            # hear it (ffplay or mpv)
+amigo-fm make "LINK" -n name               # YouTube / YT Music -> 128k mp3, no metadata
+amigo-fm make "PLAYLIST" --mix -n name     # a whole playlist, glued into one mp3
+amigo-fm split ~/Downloads/name.mp3        # over 100 MB: ~86 MB parts (90 min); the big file goes only if the cut worked
+amigo-fm put name_part00.mp3               # refuses over 100 MB before sending a byte
+amigo-fm air "LINK"                        # make + put, in one go
+```
+
+Files land in `~/Downloads` (`--dir` or `AMIGO_FM_DIR`). When a download stops working, YouTube changed something: `brew upgrade yt-dlp`.
 
 ## Rules
 
