@@ -25,6 +25,8 @@ const WORDS = {
     unreachable: "✗ Can't reach the band — check the URL and your connection.",
     badKey: "✗ That key doesn't open this band.",
     tooLarge: '✗ This tape is too large — the band takes up to 100 MB. See `amigo-fm help --advanced` to cut it.',
+    notBand: "✗ That address answers, but it isn't a band (no audio). Use the band's own URL (it ends in /tape, on workers.dev), not the receiver page at amigo.sh/fm.",
+    playerFailed: (p, d) => `✗ ${p} couldn't play the band${d ? `: ${d}` : '.'}`,
     notAudio: "✗ That isn't an audio file I can leave (mp3, wav, flac, ogg, m4a or aac).",
     notTuned: '○ Not tuned yet — run `amigo-fm tune`.',
     needTune: 'Not tuned yet. Run `amigo-fm tune` first.',
@@ -90,6 +92,8 @@ Environment: AMIGO_FM_URL, AMIGO_FM_KEY, AMIGO_FM_DIR, AMIGO_FM_LANG, AMIGO_FM_S
     unreachable: '✗ No llego a la frecuencia — revisa la URL y tu conexión.',
     badKey: '✗ Esa llave no abre esta frecuencia.',
     tooLarge: '✗ Esta cinta es demasiado grande — la frecuencia admite hasta 100 MB. Mira `amigo-fm help --advanced` para cortarla.',
+    notBand: '✗ Esa dirección responde, pero no es una frecuencia (no hay audio). Usa la URL propia de la frecuencia (termina en /tape, en workers.dev), no la página del receptor en amigo.sh/fm.',
+    playerFailed: (p, d) => `✗ ${p} no pudo reproducir la frecuencia${d ? `: ${d}` : '.'}`,
     notAudio: '✗ Eso no es un archivo de audio que pueda dejar (mp3, wav, flac, ogg, m4a o aac).',
     notTuned: '○ Aún sin sintonizar — ejecuta `amigo-fm tune`.',
     needTune: 'Aún sin sintonizar. Ejecuta primero `amigo-fm tune`.',
@@ -155,6 +159,8 @@ Entorno: AMIGO_FM_URL, AMIGO_FM_KEY, AMIGO_FM_DIR, AMIGO_FM_LANG, AMIGO_FM_SEGME
     unreachable: '✗ Nu ajung la frecvență — verifică adresa și conexiunea.',
     badKey: '✗ Cheia aceea nu deschide această frecvență.',
     tooLarge: '✗ Caseta e prea mare — frecvența primește până la 100 MB. Vezi `amigo-fm help --advanced` ca s-o tai.',
+    notBand: '✗ Adresa aceea răspunde, dar nu e o frecvență (nu are sunet). Folosește adresa frecvenței (se termină în /tape, pe workers.dev), nu pagina receptorului de la amigo.sh/fm.',
+    playerFailed: (p, d) => `✗ ${p} nu a putut reda frecvența${d ? `: ${d}` : '.'}`,
     notAudio: '✗ Ăsta nu e un fișier audio pe care îl pot lăsa (mp3, wav, flac, ogg, m4a sau aac).',
     notTuned: '○ Nesintonizat încă — rulează `amigo-fm tune`.',
     needTune: 'Nesintonizat încă. Rulează întâi `amigo-fm tune`.',
@@ -347,12 +353,13 @@ const ytError = (r) => soft(/not a bot|sign in to confirm/i.test(r.err) ? W.ytBo
 const YT = ['-q', '--no-warnings', '-x', '--audio-format', 'mp3', '--audio-quality', '128k', '--postprocessor-args', 'ffmpeg:-map_metadata -1'];
 
 // ---------- the band ----------
-// -> { state: 'awake' | 'quiet' | 'unreachable', size }
+// -> { state: 'awake' | 'quiet' | 'unreachable' | 'notBand', size }
 async function look(cfg) {
   let res;
   try { res = await fetch(bandUrl(cfg.url), { method: 'HEAD' }); } catch { return { state: 'unreachable' }; }
   if (res.status === 404) return { state: 'quiet' };
   if (!res.ok) return { state: 'unreachable' };
+  if (!/^audio\//i.test(res.headers.get('content-type') || '')) return { state: 'notBand' }; // a web page, not a band
   return { state: 'awake', size: Number(res.headers.get('content-length')) || 0 };
 }
 const statusLine = (g) => (g.state === 'awake' ? W.onAir(g.size ? mb(g.size) : '') : W[g.state]);
@@ -386,7 +393,7 @@ async function duration(src) {
 async function play(cfg) {
   needTune(cfg, 'url');
   const g = await look(cfg);
-  if (g.state === 'unreachable') die(W.unreachable);
+  if (g.state === 'unreachable' || g.state === 'notBand') die(W[g.state]);
   if (g.state === 'quiet') return say(W.nothingToPlay);
   const url = bandUrl(cfg.url);
   const player = ['ffplay', 'mpv'].find(which);
@@ -406,8 +413,15 @@ async function play(cfg) {
       ? ['-nodisp', '-autoexit', '-loglevel', 'error', ...(pos ? ['-ss', pos] : []), url]
       : ['--no-video', '--really-quiet', ...(pos ? [`--start=${pos}`] : []), url];
     const t0 = Date.now();
-    await new Promise((ok) => (child = spawn(player, args, { stdio: 'ignore' })).on('close', ok));
-    if (stopping || !len || Date.now() - t0 < 1500) break; // no length to count by, or the player fell over: don't spin
+    let said = '';
+    const code = await new Promise((ok) => {
+      child = spawn(player, args, { stdio: ['ignore', 'ignore', 'pipe'] });
+      child.stderr.on('data', (d) => (said += d));
+      child.on('close', ok);
+    });
+    if (stopping) break;
+    if (code !== 0 && Date.now() - t0 < 1500) die(W.playerFailed(player, lastLine(said))); // it fell over: say so, don't spin
+    if (!len || Date.now() - t0 < 1500) break; // no length to count by
     if ((await look(cfg)).state !== 'awake') return say(W.nothingToPlay);
     len = await duration(url);
   }
@@ -575,7 +589,7 @@ async function rec(cfg, o) {
 
   // Ask before replacing, before any waiting. Default: No.
   const g = await look(cfg);
-  if (g.state === 'unreachable') die(W.unreachable);
+  if (g.state === 'unreachable' || g.state === 'notBand') die(W[g.state]);
   if (g.state === 'awake' && !o.yes) {
     say(amber(W.replaceWarn));
     if (!process.stdin.isTTY) die(W.replaceNeedsYes);
@@ -616,6 +630,8 @@ async function tune(cfg, o) {
     r.close();
   }
   if (!url || !key) die(W.bothNeeded);
+  const g = await look({ url });
+  if (g.state === 'notBand') die(W.notBand);
   const file = { url, key };
   const lang = o.lang && WORDS[o.lang.slice(0, 2)] ? o.lang.slice(0, 2) : cfg.savedLang;
   if (lang) file.lang = lang;
@@ -624,7 +640,7 @@ async function tune(cfg, o) {
   await chmod(CONFIG, 0o600);
   say();
   say(green(W.tuned));
-  say(dim(`  ${statusLine(await look({ url }))}`));
+  say(dim(`  ${statusLine(g)}`));
 }
 
 // ---------- main ----------
